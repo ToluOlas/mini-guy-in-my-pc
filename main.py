@@ -8,9 +8,9 @@ from typing_extensions import TypedDict
 llm = OllamaLLM(model="llama3.2")
 
 class MessageClassifier(BaseModel):
-    messageType: Literal["reader", "logical"] = Field(
+    messageType: Literal["reader", "writer"] = Field(
         ...,
-        description="Classify if the message requires an reader or logical response"
+        description="Classify if the message requires an reader or writer response"
     )
 
 #state control
@@ -24,15 +24,15 @@ def classify_message(state: State):
     result = llm.invoke([
         {
             "role": "system",
-            "content": """Classify the user message as either 'reader' or 'logical'. Respond with ONLY the word 'reader' or 'logical', DO NOT respond with anything else.
+            "content": """Classify the user message as either 'reader' or 'writer'. Respond with ONLY the word 'reader' or 'writer', DO NOT respond with anything else.
             - 'reader': if the user asks for emotional support, therapy, deals with feelings, or personal problems
-            - 'logical': if the user asks for facts, information, logical analysis, or practical solutions
+            - 'writer': if the user asks for facts, information, logical analysis, or practical solutions
             """ 
         },
         {"role": "user", "content": lastMessage.content}
     ])
     
-    messageType = "logical"
+    messageType = "writer"
     if "reader" in result.lower():
         messageType = "reader"
     
@@ -58,7 +58,7 @@ def reading_agent(state: State):
     reply = llm.invoke(messages)
     return {"messages": [{"role": "assistant", "content": reply}]}
 
-def logical_agent(state: State):
+def writing_agent(state: State):
     msgHistory = state["messages"][:-1][-20:]  # all messages except the last one, max 20.
     lastMessage = state["messages"][-1]
 
@@ -79,11 +79,11 @@ def logical_agent(state: State):
     return {"messages": [{"role": "assistant", "content": reply}]}
 
 def router(state: State):
-    messageType = state.get("messageType", "logical")
+    messageType = state.get("messageType", "writer")
     if messageType == "reader":
         return {"next": "reading"}
     
-    return {"next": "logical"}
+    return {"next": "writing"}
 
 #build graph architecture
 graphBuilder = StateGraph(State)
@@ -92,18 +92,18 @@ graphBuilder = StateGraph(State)
 graphBuilder.add_node("classifier", classify_message)
 graphBuilder.add_node("router", router)
 graphBuilder.add_node("reading", reading_agent)
-graphBuilder.add_node("logical", logical_agent)
+graphBuilder.add_node("writing", writing_agent)
 #edges
 graphBuilder.add_edge(START, "classifier")
 graphBuilder.add_edge("classifier", "router")
 #conditional edges
 graphBuilder.add_conditional_edges(
     "router", lambda state: state.get("next"),
-    {"reading": "reading", "logical": "logical"}
+    {"reading": "reading", "writing": "writing"}
 )
 #end
 graphBuilder.add_edge("reading", END)
-graphBuilder.add_edge("logical", END)
+graphBuilder.add_edge("writing", END)
 
 graph = graphBuilder.compile()
 
