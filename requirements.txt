@@ -1,4 +1,6 @@
 langgraph
 langchain
 langchain-ollama
+langchain-openai
 ipykernel
+python-dotenv
