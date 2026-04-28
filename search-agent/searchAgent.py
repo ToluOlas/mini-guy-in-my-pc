@@ -107,7 +107,7 @@ def retrieve_reddit_posts(state: State):
         reddit_post_data = []
 
     print(reddit_post_data)
-    return {"redditPostAata": reddit_post_data}
+    return {"redditPostData": reddit_post_data}
 
 
 def analyse_google_results(state: State):

@@ -43,12 +43,13 @@ def reading_agent(state: State):
     lastMessage = state["messages"][-1]
 
     messages = [
-        {"role": "system",
-         "content": """You are a compassionate therapist. Focus on the emotional aspects of the user's message.
+        {
+            "role": "system",
+            "content": """You are a compassionate therapist. Focus on the emotional aspects of the user's message.
                         Show empathy, validate their feelings, and help them process their emotions.
                         Ask thoughtful questions to help them explore their feelings more deeply.
                         Avoid giving logical solutions unless explicitly asked."""
-         } 
+        }
          ] + msgHistory + [
         {
             "role": "user",
