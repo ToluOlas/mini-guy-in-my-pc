@@ -4,3 +4,5 @@ langchain-ollama
 langchain-openai
 ipykernel
 python-dotenv
+duckduckgo-search
+trafilatura
